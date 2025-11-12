@@ -122,11 +122,21 @@ if (!isset($_SESSION['username'])) {
             color: #0d6efd;
         }
 
-        .total-row {
-            background: #f0f8ff;
-            font-weight: 700;
-            color: #0d6efd;
-            text-align: right;
+        .total-section {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0d6efd, #007bff);
+            color: white;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .total-section span {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 24px;
         }
 
         footer {
@@ -204,12 +214,13 @@ if (!isset($_SESSION['username'])) {
                 $no++;
             }
             ?>
-            <tr class="total-row">
-                <td colspan="3">TOTAL BELANJA</td>
-                <td class="price"><span class="currency">Rp.</span><span class="amount"><?php echo number_format($grandtotal, 0, ',', '.'); ?></span></td>
-            </tr>
         </tbody>
     </table>
+
+    <div class="total-section">
+        💰 TOTAL BELANJA:
+        <span>Rp <?php echo number_format($grandtotal, 0, ',', '.'); ?></span>
+    </div>
 </div>
 
 <footer>
