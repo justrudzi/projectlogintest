@@ -122,6 +122,13 @@ if (!isset($_SESSION['username'])) {
             color: #0d6efd;
         }
 
+        .total-row {
+            background: #f0f8ff;
+            font-weight: 700;
+            color: #0d6efd;
+            text-align: right;
+        }
+
         footer {
             text-align: center;
             padding: 15px;
@@ -149,7 +156,7 @@ if (!isset($_SESSION['username'])) {
 
 <div class="container">
     <p class="welcome">Selamat datang, <strong><?php echo $_SESSION['username']; ?></strong> 👋</p>
-    <h3>Simulasi Penjualan Acak</h3>
+    <h3>Detail Penjualan Hari Ini</h3>
 
     <?php
     // ===== Data produk =====
@@ -158,17 +165,13 @@ if (!isset($_SESSION['username'])) {
     $harga_barang = array(3000, 12000, 8000, 5000, 10000);
 
     // ===== Logika penjualan acak =====
-    $beli = array();     // daftar barang yang dibeli
-    $jumlah = array();   // jumlah tiap barang
-    $total = array();    // total per barang
-    $grandtotal = 0;     // total semua (dipakai di commit 7 nanti)
+    $beli = array();
+    $jumlah = array();
+    $total = array();
+    $grandtotal = 0;
 
-    // Simulasikan 5 transaksi acak
     for ($i = 0; $i < 5; $i++) {
-        // ambil barang acak dari daftar
         $index = rand(0, count($kode_barang) - 1);
-
-        // jumlah pembelian acak antara 1-5
         $jml = rand(1, 5);
 
         $beli[] = $nama_barang[$index];
@@ -188,15 +191,23 @@ if (!isset($_SESSION['username'])) {
         </thead>
         <tbody>
             <?php
-            for ($i = 0; $i < count($beli); $i++) {
+            $no = 1;
+            foreach ($beli as $key => $nama) {
                 echo "<tr>";
-                echo "<td>" . ($i + 1) . "</td>";
-                echo "<td>" . $beli[$i] . "</td>";
-                echo "<td>" . $jumlah[$i] . " pcs</td>";
-                echo "<td class='price'><span class='currency'>Rp.</span><span class='amount'>" . number_format($total[$i], 0, ',', '.') . "</span></td>";
+                echo "<td>{$no}</td>";
+                echo "<td>{$nama}</td>";
+                echo "<td>{$jumlah[$key]} pcs</td>";
+                echo "<td class='price'><span class='currency'>Rp.</span><span class='amount'>" . number_format($total[$key], 0, ',', '.') . "</span></td>";
                 echo "</tr>";
+
+                $grandtotal += $total[$key];
+                $no++;
             }
             ?>
+            <tr class="total-row">
+                <td colspan="3">TOTAL BELANJA</td>
+                <td class="price"><span class="currency">Rp.</span><span class="amount"><?php echo number_format($grandtotal, 0, ',', '.'); ?></span></td>
+            </tr>
         </tbody>
     </table>
 </div>
