@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
     // Login sederhana (username: admin, password: 123)
-    if ($username === 'admin' && $password === '123') {
+    if ($username === 'admin' && $password === '777') {
         $_SESSION['username'] = $username;
         $_SESSION['role'] = 'Dosen';
         header("Location: dashboard.php");
