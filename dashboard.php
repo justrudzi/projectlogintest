@@ -139,6 +139,28 @@ if (!isset($_SESSION['username'])) {
             font-size: 24px;
         }
 
+        .discount-box {
+            background: #e9f9ef;
+            border: 2px solid #198754;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: center;
+            color: #155724;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .discount-box h4 {
+            margin: 0;
+            font-size: 18px;
+            color: #0d6efd;
+        }
+
+        .discount-box p {
+            font-size: 17px;
+            margin-top: 10px;
+        }
+
         footer {
             text-align: center;
             padding: 15px;
@@ -221,6 +243,27 @@ if (!isset($_SESSION['username'])) {
         💰 TOTAL BELANJA:
         <span>Rp <?php echo number_format($grandtotal, 0, ',', '.'); ?></span>
     </div>
+
+    <?php
+    // ===== Perhitungan Diskon =====
+    if ($grandtotal < 50000) {
+        $diskon_persen = 5;
+    } elseif ($grandtotal >= 50000 && $grandtotal <= 100000) {
+        $diskon_persen = 10;
+    } else {
+        $diskon_persen = 15;
+    }
+
+    $diskon = ($diskon_persen / 100) * $grandtotal;
+    $total_bayar = $grandtotal - $diskon;
+    ?>
+
+    <div class="discount-box">
+        <h4>🎁 Diskon Belanja <?php echo $diskon_persen; ?>%</h4>
+        <p>Potongan Harga: <strong>Rp <?php echo number_format($diskon, 0, ',', '.'); ?></strong></p>
+        <p><b>Total Bayar Akhir:</b> Rp <?php echo number_format($total_bayar, 0, ',', '.'); ?></p>
+    </div>
+
 </div>
 
 <footer>
