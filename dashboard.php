@@ -1,274 +1,275 @@
 <?php
 session_start();
 
-// Cek apakah user sudah login
+// Cek login
 if (!isset($_SESSION['username'])) {
     header("Location: index.php");
     exit;
 }
-?>
 
+// Fungsi hapus format rupiah
+function cleanRupiah($angka) {
+    return intval(str_replace(["Rp", ".", " "], "", $angka));
+}
+
+// Data Barang
+$barangList = [
+    "BRG001" => ["nama" => "Sabun Mandi", "harga" => 15000],
+    "BRG002" => ["nama" => "Sikat Gigi", "harga" => 8000],
+    "BRG003" => ["nama" => "Pasta Gigi", "harga" => 12000],
+    "BRG004" => ["nama" => "Shampoo", "harga" => 17000],
+    "BRG005" => ["nama" => "Handuk", "harga" => 25000]
+];
+
+// Tambah barang
+if (isset($_POST['tambah'])) {
+    $kode   = $_POST['kode'];
+    $nama   = $_POST['nama'];
+    $harga  = intval($_POST['harga']);
+    $jumlah = intval($_POST['jumlah']);
+    $total  = $harga * $jumlah;
+
+    $_SESSION['cart'][] = [
+        "kode"   => $kode,
+        "nama"   => $nama,
+        "harga"  => $harga,
+        "jumlah" => $jumlah,
+        "total"  => $total
+    ];
+}
+
+// Reset keranjang
+if (isset($_POST['reset'])) {
+    unset($_SESSION['cart']);
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - POLGAN MART</title>
+<meta charset="UTF-8">
+<title>POLGAN MART - Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto+Mono&display=swap" rel="stylesheet">
+<style>
+body {
+    font-family: Poppins, sans-serif;
+    background: #f3f5f9;
+    margin: 0;
+}
 
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f4f6f8;
-            margin: 0;
-            padding: 0;
-        }
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 35px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
 
-        header {
-            background: #0d6efd;
-            color: white;
-            padding: 20px 50px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
+.logo-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
-        header h2 {
-            margin: 0;
-            letter-spacing: 1px;
-        }
+.logo {
+    width: 48px;
+    height: 48px;
+    background: #3b82f6;
+    color: white;
+    font-weight: 600;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    font-size: 18px;
+}
 
-        .logout-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+.container {
+    max-width: 950px;
+    margin: 35px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
 
-        .logout-btn:hover {
-            background: #bb2d3b;
-        }
+input, select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    margin-bottom: 12px;
+    font-size: 15px;
+}
 
-        .container {
-            max-width: 1000px;
-            background: white;
-            margin: 40px auto;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
+.btn {
+    padding: 10px 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 15px;
+}
 
-        h3 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #333;
-        }
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            overflow: hidden;
-            border-radius: 10px;
-        }
+.btn-secondary {
+    background: #e5e7eb;
+    color: #374151;
+}
 
-        table thead {
-            background: #0d6efd;
-            color: white;
-        }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 25px;
+}
 
-        table th, table td {
-            padding: 12px 16px;
-        }
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
 
-        table th {
-            text-transform: uppercase;
-            font-size: 14px;
-            letter-spacing: 0.5px;
-        }
+.result-box {
+    margin-top: 25px;
+    padding: 18px;
+    font-size: 18px;
+    background: #f8fafc;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+</style>
 
-        table tbody tr:nth-child(even) {
-            background: #f8f9fa;
-        }
+<script>
+// Data barang dari PHP → JS
+let dataBarang = <?php echo json_encode($barangList); ?>;
 
-        table tbody tr:hover {
-            background: #e9f3ff;
-            transition: 0.3s;
-        }
+// Auto isi nama & harga
+function isiBarang() {
+    let kode = document.getElementById("kodeBarang").value;
 
-        .price {
-            text-align: right;
-            font-weight: 600;
-            color: #0d6efd;
-            white-space: nowrap;
-        }
+    if (kode && dataBarang[kode]) {
+        document.getElementById("namaBarang").value = dataBarang[kode].nama;
+        document.getElementById("hargaBarang").value = dataBarang[kode].harga;
+    } else {
+        document.getElementById("namaBarang").value = "";
+        document.getElementById("hargaBarang").value = "";
+    }
+}
+</script>
 
-        .currency {
-            display: inline-block;
-            width: 40px;
-            text-align: right;
-            color: #0d6efd;
-        }
-
-        .amount {
-            display: inline-block;
-            width: 80px;
-            text-align: right;
-            font-family: 'Roboto Mono', monospace;
-            color: #0d6efd;
-        }
-
-        .total-section {
-            margin-top: 30px;
-            padding: 25px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #0d6efd, #007bff);
-            color: white;
-            text-align: center;
-            font-size: 22px;
-            font-weight: 600;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
-
-        .total-section span {
-            font-family: 'Roboto Mono', monospace;
-            font-size: 24px;
-        }
-
-        .discount-box {
-            background: #e9f9ef;
-            border: 2px solid #198754;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 25px;
-            text-align: center;
-            color: #155724;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        }
-
-        .discount-box h4 {
-            margin: 0;
-            font-size: 18px;
-            color: #0d6efd;
-        }
-
-        .discount-box p {
-            font-size: 17px;
-            margin-top: 10px;
-        }
-
-        footer {
-            text-align: center;
-            padding: 15px;
-            color: #777;
-            font-size: 14px;
-            margin-top: 40px;
-        }
-
-        .welcome {
-            text-align: center;
-            margin-top: 10px;
-            color: #555;
-            font-weight: 500;
-        }
-    </style>
 </head>
 <body>
 
 <header>
-    <h2>-- POLGAN MART --</h2>
-    <form action="logout.php" method="post">
-        <button type="submit" class="logout-btn">Logout</button>
-    </form>
+    <div class="logo-box">
+        <div class="logo">PM</div>
+        <div>
+            <b>--POLGAN MART--</b><br>
+            <span style="font-size:13px; color:#6b7280;">Sistem Penjualan Sederhana</span>
+        </div>
+    </div>
+
+    <div>
+        Selamat datang, <b><?= $_SESSION['username']; ?></b><br>
+        <small style="color:#6b7280;">Role: Admin</small>
+
+        <form method="post" action="logout.php">
+            <button class="logout-btn">Logout</button>
+        </form>
+    </div>
 </header>
 
 <div class="container">
-    <p class="welcome">Selamat datang, <strong><?php echo $_SESSION['username']; ?></strong> 👋</p>
-    <h3>Detail Penjualan Hari Ini</h3>
 
-    <?php
-    // ===== Data produk =====
-    $kode_barang = array("BRG001", "BRG002", "BRG003", "BRG004", "BRG005");
-    $nama_barang = array("Sabun", "Shampoo", "Pasta Gigi", "Sikat Gigi", "Tisu");
-    $harga_barang = array(3000, 12000, 8000, 5000, 10000);
+    <h3>Input Barang</h3>
+    <form method="post">
 
-    // ===== Logika penjualan acak =====
-    $beli = array();
-    $jumlah = array();
-    $total = array();
-    $grandtotal = 0;
+        <label>Kode Barang</label>
+        <select name="kode" id="kodeBarang" onchange="isiBarang()" required>
+            <option value="">Pilih Kode Barang</option>
+            <?php foreach ($barangList as $kode => $b): ?>
+                <option value="<?= $kode ?>"><?= $kode ?> - <?= $b['nama'] ?></option>
+            <?php endforeach; ?>
+        </select>
 
-    for ($i = 0; $i < 5; $i++) {
-        $index = rand(0, count($kode_barang) - 1);
-        $jml = rand(1, 5);
+        <label>Nama Barang</label>
+        <input type="text" id="namaBarang" name="nama" readonly>
 
-        $beli[] = $nama_barang[$index];
-        $jumlah[] = $jml;
-        $total[] = $harga_barang[$index] * $jml;
-    }
-    ?>
+        <label>Harga</label>
+        <input type="text" id="hargaBarang" name="harga" readonly>
+
+        <label>Jumlah</label>
+        <input type="number" name="jumlah" required>
+
+        <button class="btn btn-primary" name="tambah">Tambahkan</button>
+        <button type="reset" class="btn btn-secondary">Batal</button>
+    </form>
+
+    <h3 style="margin-top:35px;">Daftar Pembelian</h3>
 
     <table>
         <thead>
             <tr>
-                <th>No</th>
+                <th>Kode</th>
                 <th>Nama Barang</th>
+                <th>Harga</th>
                 <th>Jumlah</th>
-                <th style="text-align:right;">Total</th>
+                <th>Total</th>
             </tr>
         </thead>
+
         <tbody>
             <?php
-            $no = 1;
-            foreach ($beli as $key => $nama) {
-                echo "<tr>";
-                echo "<td>{$no}</td>";
-                echo "<td>{$nama}</td>";
-                echo "<td>{$jumlah[$key]} pcs</td>";
-                echo "<td class='price'><span class='currency'>Rp.</span><span class='amount'>" . number_format($total[$key], 0, ',', '.') . "</span></td>";
-                echo "</tr>";
-
-                $grandtotal += $total[$key];
-                $no++;
+            $grand = 0;
+            if (!empty($_SESSION['cart'])) {
+                foreach ($_SESSION['cart'] as $b) {
+                    echo "<tr>
+                        <td>{$b['kode']}</td>
+                        <td>{$b['nama']}</td>
+                        <td>Rp " . number_format($b['harga'], 0, ',', '.') . "</td>
+                        <td>{$b['jumlah']}</td>
+                        <td>Rp " . number_format($b['total'], 0, ',', '.') . "</td>
+                    </tr>";
+                    $grand += $b['total'];
+                }
             }
             ?>
         </tbody>
     </table>
 
-    <div class="total-section">
-        💰 TOTAL BELANJA:
-        <span>Rp <?php echo number_format($grandtotal, 0, ',', '.'); ?></span>
-    </div>
-
     <?php
-    // ===== Perhitungan Diskon =====
-    if ($grandtotal < 50000) {
-        $diskon_persen = 5;
-    } elseif ($grandtotal >= 50000 && $grandtotal <= 100000) {
-        $diskon_persen = 10;
-    } else {
-        $diskon_persen = 15;
-    }
+    if ($grand < 50000) $disc = 5;
+    elseif ($grand <= 100000) $disc = 10;
+    else $disc = 15;
 
-    $diskon = ($diskon_persen / 100) * $grandtotal;
-    $total_bayar = $grandtotal - $diskon;
+    $potongan = ($grand * $disc) / 100;
+    $final = $grand - $potongan;
     ?>
 
-    <div class="discount-box">
-        <h4>🎁 Diskon Belanja <?php echo $diskon_persen; ?>%</h4>
-        <p>Potongan Harga: <strong>Rp <?php echo number_format($diskon, 0, ',', '.'); ?></strong></p>
-        <p><b>Total Bayar Akhir:</b> Rp <?php echo number_format($total_bayar, 0, ',', '.'); ?></p>
+    <div class="result-box">
+        <span>Total Belanja</span>
+        <b>Rp <?= number_format($grand,0,',','.'); ?></b>
     </div>
 
-</div>
+    <div class="result-box">
+        <span>Diskon (<?= $disc ?>%)</span>
+        <b>Rp <?= number_format($potongan,0,',','.'); ?></b>
+    </div>
 
-<footer>
-    &copy; <?php echo date("Y"); ?> POLGAN MART. All Rights Reserved.
-</footer>
+    <div class="result-box">
+        <span>Total Bayar</span>
+        <b>Rp <?= number_format($final,0,',','.'); ?></b>
+    </div>
+
+    <form method="post">
+        <button name="reset" class="btn btn-secondary" style="margin-top:15px;">Kosongkan Keranjang</button>
+    </form>
+
+</div>
 
 </body>
 </html>
